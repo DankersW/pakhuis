@@ -1,0 +1,9 @@
+wsn:
+  usb:
+    port: "/dev/ttyACM0"
+
+kafka:
+  brokers: ["kafka:9092"]
+
+log:
+  level: "info"
