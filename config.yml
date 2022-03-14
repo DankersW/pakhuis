@@ -1,0 +1,9 @@
+wsn:
+  usb:
+    port: "/dev/ttyACM0"
+  
+kafka:
+  brokers: ["localhost:29092"]
+
+log:
+  level: "debug"
