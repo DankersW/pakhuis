@@ -39,10 +39,10 @@ func main() {
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
-	<-quit
+
+	work(quit, msgChan)
 
 	mainCtx.Done()
-
 }
 
 //TODO: create a main loop that listens to the callback
