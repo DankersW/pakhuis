@@ -29,7 +29,7 @@ func main() {
 	defer cancel()
 
 	msgChan := make(chan kafka.ConsumerMsg, 10)
-	topics := []string{"test"}
+	topics := []string{"test", "wsn.sensor-data.telemetry"}
 
 	consumer, err := kafka.NewConsumer(conf.Kafka.Brokers, topics, msgChan)
 	if err != nil {
