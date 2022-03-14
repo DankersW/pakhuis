@@ -13,7 +13,7 @@ func work(shutdown chan os.Signal, msgPipe kafka.MsgChan) {
 		case <-shutdown:
 			return
 		case msg := <-msgPipe:
-			log.Infof("handling msg on topic %q", msg.Topic)
+			log.Infof("handling msg on topic %q: %q", msg.Topic, msg.Data)
 		}
 	}
 }

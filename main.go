@@ -45,5 +45,4 @@ func main() {
 	mainCtx.Done()
 }
 
-//TODO: create a main loop that listens to the callback
 // TODO: MongoDB driver
