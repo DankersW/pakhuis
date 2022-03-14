@@ -28,12 +28,10 @@ func main() {
 	mainCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	testTopicClb := make(kafka.MsgCallback)
-	topics := map[string]kafka.MsgCallback{
-		"test": testTopicClb,
-	}
+	msgChan := make(chan kafka.ConsumerMsg, 10)
+	topics := []string{"test"}
 
-	consumer, err := kafka.NewConsumer(conf.Kafka.Brokers, topics)
+	consumer, err := kafka.NewConsumer(conf.Kafka.Brokers, topics, msgChan)
 	if err != nil {
 		log.Fatalf("Failed to setup kafka consumer, %s", err.Error())
 	}

@@ -7,11 +7,16 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type MsgCallback chan []byte
+type ConsumerMsg struct {
+	Topic string
+	Data  []byte
+}
+type MsgChan chan ConsumerMsg
 
 type consumer struct {
-	client sarama.ConsumerGroup
-	topics map[string]MsgCallback
+	client     sarama.ConsumerGroup
+	topics     []string
+	msgHandler MsgChan
 }
 
 type Consumer interface {
@@ -19,7 +24,7 @@ type Consumer interface {
 	Close()
 }
 
-func NewConsumer(brokers []string, topics map[string]MsgCallback) (Consumer, error) {
+func NewConsumer(brokers []string, topics []string, handler MsgChan) (Consumer, error) {
 	config, err := consumerConfig()
 	if err != nil {
 		return nil, err
@@ -31,8 +36,9 @@ func NewConsumer(brokers []string, topics map[string]MsgCallback) (Consumer, err
 	}
 
 	consumer := &consumer{
-		client: client,
-		topics: topics,
+		client:     client,
+		topics:     topics,
+		msgHandler: handler,
 	}
 	return consumer, nil
 }
@@ -51,9 +57,8 @@ func consumerConfig() (*sarama.Config, error) {
 }
 
 func (c *consumer) Serve(ctx context.Context) {
-	topics := keysFromMap(c.topics)
 	for {
-		if err := c.client.Consume(ctx, topics, c); err != nil {
+		if err := c.client.Consume(ctx, c.topics, c); err != nil {
 			log.Panicf("Error from consumer: %v", err)
 		}
 		if ctx.Err() != nil {
@@ -80,18 +85,9 @@ func (c *consumer) Cleanup(sarama.ConsumerGroupSession) error {
 // ConsumeClaim must start a consumer loop of ConsumerGroupClaim's Messages().
 func (c *consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for message := range claim.Messages() {
-		c.topics[message.Topic] <- message.Value
+		msg := ConsumerMsg{Topic: message.Topic, Data: message.Value}
+		c.msgHandler <- msg
 		session.MarkMessage(message, "")
 	}
 	return nil
-}
-
-func keysFromMap(m map[string]MsgCallback) []string {
-	keys := make([]string, len(m))
-	i := 0
-	for k := range m {
-		keys[i] = k
-		i++
-	}
-	return keys
 }
